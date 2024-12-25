@@ -8,9 +8,9 @@
     "deploy": "vercel"
   },
   "dependencies": {
-    "megajs": "^1.0.5"  // Ensure megajs is listed here
+    "megajs": "^1.0.5"
   },
   "engines": {
-    "node": ">=16.x"  // Ensure compatibility with Vercel's Node.js runtime
+    "node": ">=16.x"
   }
 }
