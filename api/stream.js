@@ -4,27 +4,26 @@ const { File } = require('megajs');
 const url = 'https://mega.nz/file/iAhiBLjB#Y9-RQ6rM5NLfDb6-xoILOGNOIVNs5rFsT8RPa8eJDf8';
 const mainFile = File.fromURL(url);
 
-// Global flag to track if file attributes are loaded
-let fileAttributesLoaded = false;
-
-// Preload attributes before handling requests
-mainFile
-    .loadAttributes()
-    .then(() => {
-        fileAttributesLoaded = true;
+// This function will load the attributes of the file before starting the server
+async function loadFileAttributes() {
+    try {
+        await mainFile.loadAttributes();
         console.log('File attributes loaded.');
         console.log('File name:', mainFile.name);
         console.log('File size:', mainFile.size);
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Failed to load file attributes:', error.message);
-    });
+        throw new Error('File attributes not loaded');
+    }
+}
 
-// API handler for Vercel
+// Call the load function to preload file attributes
+loadFileAttributes();
+
 export default async (req, res) => {
     try {
-        // Ensure file attributes are loaded
-        if (!fileAttributesLoaded) {
+        // Ensure file attributes are loaded before processing the request
+        if (!mainFile.size) {
             throw new Error('File attributes not yet loaded.');
         }
 
@@ -53,12 +52,12 @@ export default async (req, res) => {
                 'Content-Range': `bytes ${start}-${end}/${totalSize}`,
                 'Accept-Ranges': 'bytes',
                 'Content-Length': end - start + 1,
-                'Content-Type': 'video/x-matroska', // Adjust MIME type as needed
+                'Content-Type': 'video/x-matroska' // Adjust MIME type as needed
             });
         } else {
             res.writeHead(200, {
                 'Content-Length': totalSize,
-                'Content-Type': 'video/x-matroska', // Adjust MIME type as needed
+                'Content-Type': 'video/x-matroska' // Adjust MIME type as needed
             });
         }
 
