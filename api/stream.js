@@ -4,32 +4,20 @@ const { File } = require('megajs');
 const url = 'https://mega.nz/file/iAhiBLjB#Y9-RQ6rM5NLfDb6-xoILOGNOIVNs5rFsT8RPa8eJDf8';
 const mainFile = File.fromURL(url);
 
-// Global flag to track if file attributes are loaded
-let fileAttributesLoaded = false;
-
-// Preload attributes before handling requests
-async function loadFileAttributes() {
-    try {
-        await mainFile.loadAttributes();
-        fileAttributesLoaded = true;
-        console.log('File attributes loaded.');
-        console.log('File name:', mainFile.name);
-        console.log('File size:', mainFile.size);
-    } catch (error) {
-        console.error('Failed to load file attributes:', error.message);
-    }
-}
-
-// Load file attributes before starting the server
-loadFileAttributes();
+// Create a Promise to handle file attribute loading
+let fileAttributesReady = mainFile.loadAttributes().then(() => {
+    console.log('File attributes loaded:');
+    console.log('File name:', mainFile.name);
+    console.log('File size:', mainFile.size);
+}).catch((error) => {
+    console.error('Error loading file attributes:', error.message);
+    throw new Error('File attributes could not be loaded.');
+});
 
 export default async (req, res) => {
     try {
-        // Ensure file attributes are loaded before processing the request
-        if (!fileAttributesLoaded) {
-            res.writeHead(500, { 'Content-Type': 'text/plain' });
-            return res.end('Error: File attributes not loaded yet.');
-        }
+        // Wait for file attributes to load before proceeding
+        await fileAttributesReady;
 
         const range = req.headers.range;
         const totalSize = mainFile.size;
