@@ -5,16 +5,18 @@ const { File } = require('megajs');
 const url = 'https://mega.nz/file/iAhiBLjB#Y9-RQ6rM5NLfDb6-xoILOGNOIVNs5rFsT8RPa8eJDf8'; // Replace with your MEGA file URL
 
 // Create a File object
-const mainFile = File.fromURL(url);
+const mainFile = File.fromURL(url)
 
-mainFile.loadAttributes().then(() => {
-    console.log('File name:', mainFile.name);
-});
-
-const server = http.createServer(async (req, res) => {
+export default async (req, res) => {
     try {
+        await mainFile.loadAtrributes();
+
         const range = req.headers.range;
         const totalSize = mainFile.size;
+        
+        if (!totalSize) {
+            throw new Error('Unable to determine the file size');
+        }
 
         let start = 0;
         let end = totalSize - 1;
@@ -38,22 +40,22 @@ const server = http.createServer(async (req, res) => {
                 'Content-Length': end - start + 1,
                 'Content-Type': 'video/x-matroska' // Correct MIME type for MKV files
             });
-        } else {
-            res.writeHead(200, {
-                'Content-Length': totalSize,
-                'Content-Type': 'video/x-matroska' // Correct MIME type for MKV files
-            });
-        }
-
-        // Stream the required range of the file
-        const stream = mainFile.download({ start, end });
-        stream.pipe(res);
+    } else {
+        res.writeHead(200, {
+            'Content-Length': totalSize,
+            'Content-Type': 'video/x-matroska' // Correct MIME type for MKV files
+        });
+    }
+    
+    const stream = mainFile.download({ start, end });
+    stream.pipe(res);
+    
 
     } catch (error) {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
         res.end('Error streaming video: ' + error.message);
     }
-});
+}
 
 const port = process.env.PORT || 3000; // Use PORT environment variable, default to 3000 if not set
 server.listen(port, () => {
