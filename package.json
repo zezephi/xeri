@@ -1,15 +1,16 @@
 {
-  "name": "github",
+  "name": "mega-file-streaming",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "api/stream.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vercel dev",
+    "start": "vercel dev",
+    "deploy": "vercel"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "megajs": "^1.3.0"
+    "megajs": "^1.0.5"  // Ensure megajs is listed here
+  },
+  "engines": {
+    "node": ">=16.x"  // Ensure compatibility with Vercel's Node.js runtime
   }
 }
